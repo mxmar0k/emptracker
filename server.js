@@ -104,11 +104,11 @@ function start(){
             "Add a  department",*
             "Add a role",*
             "Add an employee",*
-            "Update an employee role",
-            "Update employee managers",
-            "View employees by manager",
-            "View employees by department",
-            "Delete departments, roles, and employees",
+            "Update an employee role",*
+            "Update employee managers",*
+            "View employees by manager",*
+            "View employees by department",*
+            "Delete departments, roles, and employees",*
             "View the total utilized budget of a department&mdash;in other words, the combined salaries of all employees in that department.",
             "Exit",*/
 
@@ -357,3 +357,118 @@ async function updateEmployeeManager() {
     }
 }
 
+// function to view employees by manager
+
+async function viewEmployeesByManager() {
+    try {
+        const query = `
+            SELECT 
+                e.id, 
+                e.first_name, 
+                e.last_name, 
+                r.title, 
+                d.department_name, 
+                CONCAT(m.first_name, ' ', m.last_name) AS manager_name
+            FROM 
+                employee e
+                INNER JOIN roles r ON e.role_id = r.id
+                INNER JOIN departments d ON r.department_id = d.id
+                LEFT JOIN employee m ON e.manager_id = m.id
+            ORDER BY 
+                manager_name, 
+                e.last_name, 
+                e.first_name
+        `;
+
+        const [rows] = await connection.promise().query(query);
+
+        const employeesByManager = rows.reduce((acc, cur) => {
+            const { manager_name, ...employeeData } = cur;
+            if (!acc[manager_name]) {
+                acc[manager_name] = [];
+            }
+            acc[manager_name].push(employeeData);
+            return acc;
+        }, {});
+
+        console.log("Employees by manager:");
+        for (const managerName in employeesByManager) {
+            console.log(`\n${managerName}:`);
+            const employees = employeesByManager[managerName];
+            employees.forEach((employee) => {
+                const { first_name, last_name, title, department_name } = employee;
+                console.log(`  ${first_name} ${last_name} | ${title} | ${department_name}`);
+            });
+        }
+
+        start();
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+}
+
+//now view employees by departmente, holy christ
+
+async function viewEmployeesByDepartment() {
+    try {
+        const query = `
+            SELECT 
+                departments.department_name, 
+                employee.first_name, 
+                employee.last_name 
+            FROM 
+                employee 
+                INNER JOIN roles ON employee.role_id = roles.id 
+                INNER JOIN departments ON roles.department_id = departments.id 
+            ORDER BY 
+                departments.department_name ASC
+        `;
+
+        const [rows] = await connection.promise().query(query);
+
+        console.log("\nEmployees by department:");
+        console.table(rows);
+
+        start();
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+}
+
+// next delete emp, role or dep, but we need a switch first
+
+async function deleteDepartmentsRolesEmployees() {
+    try {
+        const answer = await inquirer.prompt({
+            type: "list",
+            name: "data",
+            message: "What would you like to delete?",
+            choices: ["Employee", "Role", "Department", "Go Back"],
+        });
+
+        switch (answer.data) {
+            case "Employee":
+                await deleteEmployee();
+                break;
+            case "Role":
+                await deleteRole();
+                break;
+            case "Department":
+                await deleteDepartment();
+                break;
+            case "Go Back":
+                start();
+                break;
+            default:
+                console.log(`Invalid choice: ${answer.data}`);
+                start();
+                break;
+        }
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+}
+
+//now we have to go one by one, oh god
+
+//delete employee
