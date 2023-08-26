@@ -1,5 +1,5 @@
 -- insert departments
-INSERT INTO department (name) VALUES
+INSERT INTO department (dep_name) VALUES
     ('Sales'),
     ('Engineering'),
     ('Marketing'),
@@ -18,10 +18,10 @@ INSERT INTO role (title, salary, department_id) VALUES
 
 -- insert employees
 INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES
-    ('John', 'Doe', 1, NULL),
-    ('Jane', 'Smith', 2, 1),
-    ('Michael', 'Johnson', 3, NULL),
-    ('Emily', 'Williams', 4, 3),
-    ('David', 'Brown', 5, NULL),
-    ('Sarah', 'Miller', 6, 4),
-    ('Robert', 'Davis', 7, NULL);
+    ('Naruto', 'Uzumaki', 1, NULL),
+    ('Monkey', 'D. Luffy', 2, 1),
+    ('Ichigo', 'Kurosaki', 3, NULL),
+    ('Edward', 'Enric', 4, 3),
+    ('Light', 'Yagami', 5, NULL),
+    ('Goku', 'Son', 6, 4),
+    ('Eren', 'Yaeger', 7, NULL);
