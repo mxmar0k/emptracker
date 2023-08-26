@@ -95,3 +95,35 @@ function start(){
         }
     });
 }
+
+// next we have to use a function to each of the cases :(
+
+//first function to view all departments 
+async function viewAllDepartments() {
+    try {
+        const [departments] = await connection.promise().query("SELECT * FROM department");
+        console.table(departments);
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+    start();
+}
+
+
+//next we have to view all roles
+async function viewAllRoles() {
+    try {
+        const query = `
+            SELECT roles.title, roles.id, departments.department_name, roles.salary
+            FROM roles
+            JOIN departments ON roles.department_id = departments.id
+        `;
+        
+        const [rows] = await connection.promise().query(query);
+        console.table(rows);
+
+        start();
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+}
