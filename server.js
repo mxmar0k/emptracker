@@ -103,7 +103,7 @@ function start(){
             "View all employees"*,
             "Add a  department",*
             "Add a role",*
-            "Add an employee",
+            "Add an employee",*
             "Update and employee role",
             "Update employee managers",
             "View employees by manager",
@@ -177,6 +177,98 @@ async function addDepartment() {
         const [result] = await connection.promise().query(query, [answer.name]);
 
         console.log(`You added department ${answer.name} to the employee database`);
+        start();
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+}
+
+//next add role, this is taking to long haha
+
+async function addRole() {
+    try {
+        const [departments] = await connection.promise().query("SELECT * FROM department");
+
+        const answers = await inquirer.prompt([
+            {
+                type: "input",
+                name: "title",
+                message: "Enter the title of the new role:",
+            },
+            {
+                type: "input",
+                name: "salary",
+                message: "Enter the salary of the new role:",
+            },
+            {
+                type: "list",
+                name: "department",
+                message: "Select the department for the new role:",
+                choices: departments.map(department => department.name),
+            },
+        ]);
+
+        const department = departments.find(dep => dep.name === answers.department);
+        const query = "INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)";
+        const roleData = [answers.title, answers.salary, department.id];
+
+        await connection.promise().query(query, roleData);
+
+        console.log(`Added the role ${answers.title} with a salary of ${answers.salary} to the ${answers.department} department in the employee database`);
+        start();
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+}
+
+// next we add employees, please god stahp
+
+async function addEmployee() {
+    try {
+        const [roles] = await connection.promise().query("SELECT id, title FROM role");
+        const [managers] = await connection.promise().query(
+            'SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee'
+        );
+
+        const roleChoices = roles.map(({ id, title }) => ({ name: title, value: id }));
+        const managerChoices = [{ name: "None", value: null }, ...managers.map(({ id, name }) => ({ name, value: id }))];
+
+        const answers = await inquirer.prompt([
+            {
+                type: "input",
+                name: "firstName",
+                message: "Enter the employee's first name:",
+            },
+            {
+                type: "input",
+                name: "lastName",
+                message: "Enter the employee's last name:",
+            },
+            {
+                type: "list",
+                name: "roleId",
+                message: "Select the employee role:",
+                choices: roleChoices,
+            },
+            {
+                type: "list",
+                name: "managerId",
+                message: "Select the employee manager:",
+                choices: managerChoices,
+            },
+        ]);
+
+        const sql =
+            "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)";
+        const values = [
+            answers.firstName,
+            answers.lastName,
+            answers.roleId,
+            answers.managerId,
+        ];
+
+        await connection.promise().query(sql, values);
+        console.log("Employee added successfully");
         start();
     } catch (error) {
         console.error("An error occurred:", error);
