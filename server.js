@@ -19,12 +19,6 @@ connection.connect((err)=>{
     start();
 });
 
-//close connection
-
-process.on("exit", ()=>{
-    connection.end();
-})
-
 // start the app with inquierer
 
 function start(){
@@ -109,7 +103,7 @@ function start(){
             "View employees by manager",*
             "View employees by department",*
             "Delete departments, roles, and employees",*
-            "View the total utilized budget of a department&mdash;in other words, the combined salaries of all employees in that department.",
+            "View the total utilized budget of a department;in other words, the combined salaries of all employees in that department.",*
             "Exit",*/
 
 //first function to view all departments 
@@ -472,3 +466,131 @@ async function deleteDepartmentsRolesEmployees() {
 //now we have to go one by one, oh god
 
 //delete employee
+
+async function deleteEmployee() {
+    try {
+        const employees = await connection.query("SELECT id, first_name, last_name FROM employee");
+        const employeeChoices = employees.map(employee => ({
+            name: `${employee.first_name} ${employee.last_name}`,
+            value: employee.id,
+        }));
+        employeeChoices.push({ name: "Go Back", value: "back" });
+
+        const answer = await inquirer.prompt({
+            type: "list",
+            name: "employeeId",
+            message: "Select the employee you want to delete:",
+            choices: employeeChoices,
+        });
+
+        if (answer.employeeId === "back") {
+            deleteDepartmentsRolesEmployees();
+            return;
+        }
+
+        await connection.query("DELETE FROM employee WHERE id = ?", [answer.employeeId]);
+        console.log(`Employee with ID ${answer.employeeId} has been deleted.`);
+        start();
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+}
+
+// then delete roleee
+
+async function deleteRole() {
+    try {
+        const roles = await connection.query("SELECT id, title FROM role");
+        const roleChoices = roles.map(role => ({
+            name: role.title,
+            value: role.id,
+        }));
+        roleChoices.push({ name: "Go Back", value: "back" });
+
+        const answer = await inquirer.prompt({
+            type: "list",
+            name: "roleId",
+            message: "Select the role you want to delete:",
+            choices: roleChoices,
+        });
+
+        if (answer.roleId === "back") {
+            deleteDepartmentsRolesEmployees();
+            return;
+        }
+
+        await connection.query("DELETE FROM role WHERE id = ?", [answer.roleId]);
+        console.log(`Role with ID ${answer.roleId} has been deleted.`);
+        start();
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+}
+
+// next delete department 
+
+async function deleteDepartment() {
+    try {
+        const departments = await connection.query("SELECT id, name FROM department");
+        const departmentChoices = departments.map(department => ({
+            name: department.name,
+            value: department.id,
+        }));
+        departmentChoices.push({ name: "Go Back", value: "back" });
+
+        const answer = await inquirer.prompt({
+            type: "list",
+            name: "departmentId",
+            message: "Select the department you want to delete:",
+            choices: departmentChoices,
+        });
+
+        if (answer.departmentId === "back") {
+            deleteDepartmentsRolesEmployees();
+            return;
+        }
+
+        await connection.query("DELETE FROM department WHERE id = ?", [answer.departmentId]);
+        console.log(`Department with ID ${answer.departmentId} has been deleted.`);
+        start();
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+}
+
+// finally, all salaries in a dpt
+
+async function viewDepartmentBudget() {
+    try {
+        const departments = await connection.query("SELECT id, name FROM department");
+        const departmentChoices = departments.map(department => ({
+            name: department.name,
+            value: department.id,
+        }));
+
+        const answer = await inquirer.prompt({
+            type: "list",
+            name: "departmentId",
+            message: "Select the department to view the budget:",
+            choices: departmentChoices,
+        });
+
+        const departmentId = answer.departmentId;
+        const result = await connection.query(
+            "SELECT SUM(role.salary) AS total_budget FROM employee JOIN role ON employee.role_id = role.id WHERE role.department_id = ?",
+            [departmentId]
+        );
+
+        const totalBudget = result[0].total_budget;
+        console.log(`Total budget for the selected department: $${totalBudget}`);
+        start();
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+}
+
+//close connection
+
+process.on("exit", ()=>{
+    connection.end();
+})
