@@ -122,9 +122,9 @@ async function viewAllDepartments() {
 async function viewAllRoles() {
     try {
         const query = `
-            SELECT roles.title, roles.id, department.dep_name, roles.salary
-            FROM roles
-            JOIN department ON roles.department_id = department.id
+            SELECT role.title, role.id, department.dep_name, role.salary
+            FROM role
+            JOIN department ON role.department_id = department.id
         `;
         
         const [rows] = await connection.promise().query(query);
@@ -142,7 +142,7 @@ async function viewAllEmployees() {
     const query = `
     SELECT e.id, e.first_name, e.last_name, r.title, d.dep_name, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager_name
     FROM employee e
-    LEFT JOIN roles r ON e.role_id = r.id
+    LEFT JOIN role r ON e.role_id = r.id
     LEFT JOIN department d ON r.department_id = d.id
     LEFT JOIN employee m ON e.manager_id = m.id;
     `;
@@ -203,7 +203,7 @@ async function addRole() {
         ]);
 
         const department = department.find(dep => dep.dep_name === answers.department);
-        const query = "INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)";
+        const query = "INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)";
         const roleData = [answers.title, answers.salary, department.id];
 
         await connection.promise().query(query, roleData);
@@ -274,7 +274,7 @@ async function addEmployee() {
 async function updateEmployeeRole() {
     try {
         const [employees] = await connection.promise().query(
-            "SELECT employee.id, employee.first_name, employee.last_name, roles.title FROM employee LEFT JOIN roles ON employee.role_id = roles.id"
+            "SELECT employee.id, employee.first_name, employee.last_name, role.title FROM employee LEFT JOIN role ON employee.role_id = role.id"
         );
 
         const [roles] = await connection.promise().query("SELECT id, title FROM role");
@@ -412,8 +412,8 @@ async function viewEmployeesByDepartment() {
                 employee.last_name 
             FROM 
                 employee 
-                INNER JOIN roles ON employee.role_id = roles.id 
-                INNER JOIN department ON roles.department_id = department.id 
+                INNER JOIN roles ON employee.role_id = role.id 
+                INNER JOIN department ON role.department_id = department.id 
             ORDER BY 
                 department.dep_name ASC
         `;
@@ -574,7 +574,7 @@ async function viewTotalUtilizedBudgetOfDepartment() {
 
         const departmentId = departments.find(dep => dep.dep_name === answer.departmentId).id; // Correctly find the department ID
         const result = await connection.promise().query(
-            "SELECT SUM(roles.salary) AS total_budget FROM employee JOIN roles ON employee.role_id = roles.id WHERE roles.department_id = ?",
+            "SELECT SUM(role.salary) AS total_budget FROM employee JOIN role ON employee.role_id = role.id WHERE role.department_id = ?",
             [departmentId]
         );
 
