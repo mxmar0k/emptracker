@@ -98,6 +98,20 @@ function start(){
 
 // next we have to use a function to each of the cases :(
 
+/*    "View all departments",*
+            "View all roles",*
+            "View all employees"*,
+            "Add a  department",*
+            "Add a role",*
+            "Add an employee",
+            "Update and employee role",
+            "Update employee managers",
+            "View employees by manager",
+            "View employees by department",
+            "Delete departments, roles, and employees",
+            "View the total utilized budget of a department&mdash;in other words, the combined salaries of all employees in that department.",
+            "Exit",*/
+
 //first function to view all departments 
 async function viewAllDepartments() {
     try {
@@ -122,6 +136,47 @@ async function viewAllRoles() {
         const [rows] = await connection.promise().query(query);
         console.table(rows);
 
+        start();
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+}
+
+//next, view all employees
+
+async function viewAllEmployees() {
+    const query = `
+    SELECT e.id, e.first_name, e.last_name, r.title, d.department_name, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager_name
+    FROM employee e
+    LEFT JOIN roles r ON e.role_id = r.id
+    LEFT JOIN departments d ON r.department_id = d.id
+    LEFT JOIN employee m ON e.manager_id = m.id;
+    `;
+
+    try {
+        const [rows] = await connection.promise().query(query);
+        console.table(rows);
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+    
+    start();
+}
+
+//next add a department
+
+async function addDepartment() {
+    try {
+        const answer = await inquirer.prompt({
+            type: "input",
+            name: "name",
+            message: "Enter the name of the department you want to add:",
+        });
+
+        const query = "INSERT INTO department (department_name) VALUES (?)";
+        const [result] = await connection.promise().query(query, [answer.name]);
+
+        console.log(`You added department ${answer.name} to the employee database`);
         start();
     } catch (error) {
         console.error("An error occurred:", error);
