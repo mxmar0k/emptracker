@@ -157,6 +157,7 @@ async function viewAllEmployees() {
     start();
 }
 
+
 //next add a department
 
 async function addDepartment() {
