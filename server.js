@@ -34,12 +34,12 @@ function start(){
             "Add a department",
             "Add a role",
             "Add an employee",
-            "Update and employee role",
+            "Update an employee role",
             "Update employee managers",
             "View employees by manager",
             "View employees by department",
             "Delete departments, roles, and employees",
-            "View the total utilized budget of a department.",
+            "View the total utilized budget of a department",
             "Exit",
 
         ],
@@ -184,6 +184,12 @@ async function addRole() {
     try {
         const [departments] = await connection.promise().query("SELECT * FROM department");
 
+        // Construct the choices array for departments
+        const departmentChoices = departments.map(department => ({
+            name: department.dep_name,
+            value: department.id,
+        }));
+
         const answers = await inquirer.prompt([
             {
                 type: "input",
@@ -197,24 +203,27 @@ async function addRole() {
             },
             {
                 type: "list",
-                name: "department",
+                name: "departmentId", // Use a more appropriate name for the selected value
                 message: "Select the department for the new role:",
-                choices: departments.map(department => department.name),
+                choices: departmentChoices,
             },
         ]);
 
-        const department = department.find(dep => dep.dep_name === answers.department);
+        // Find the chosen department using departmentId
+        const chosenDepartment = departments.find(dep => dep.id === answers.departmentId);
+
         const query = "INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)";
-        const roleData = [answers.title, answers.salary, department.id];
+        const roleData = [answers.title, answers.salary, chosenDepartment.id];
 
         await connection.promise().query(query, roleData);
 
-        console.log(`Added the role ${answers.title} with a salary of ${answers.salary} to the ${answers.department} department in the employee database`);
+        console.log(`Added the role ${answers.title} with a salary of ${answers.salary} to the ${chosenDepartment.dep_name} department in the employee database`);
         start();
     } catch (error) {
         console.error("An error occurred:", error);
     }
 }
+
 
 // next we add employees, please god stahp
 
@@ -366,7 +375,7 @@ async function viewEmployeesByManager() {
                 CONCAT(m.first_name, ' ', m.last_name) AS manager_name
             FROM 
                 employee e
-                INNER JOIN roles r ON e.role_id = r.id
+                INNER JOIN role r ON e.role_id = r.id
                 INNER JOIN department d ON r.department_id = d.id
                 LEFT JOIN employee m ON e.manager_id = m.id
             ORDER BY 
@@ -401,6 +410,7 @@ async function viewEmployeesByManager() {
         console.error("An error occurred:", error);
     }
 }
+
 
 //now view employees by departmente, holy christ
 
