@@ -7,7 +7,7 @@ USE employee_db;
 -- then we create the department table
 CREATE TABLE department (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL
+    dep_name VARCHAR(50) NOT NULL
 );
 
 -- next we create the role table

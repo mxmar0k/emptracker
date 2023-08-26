@@ -5,7 +5,7 @@ const mysql = require("mysql2");
 
 const connection = mysql.createConnection({
     host: "localhost",
-    port: 3001,
+    port: 3306,
     user: "root",
     password: "",
     database: "employee_db"
@@ -122,9 +122,9 @@ async function viewAllDepartments() {
 async function viewAllRoles() {
     try {
         const query = `
-            SELECT roles.title, roles.id, departments.department_name, roles.salary
+            SELECT roles.title, roles.id, department.dep_name, roles.salary
             FROM roles
-            JOIN departments ON roles.department_id = departments.id
+            JOIN department ON roles.department_id = department.id
         `;
         
         const [rows] = await connection.promise().query(query);
@@ -140,10 +140,10 @@ async function viewAllRoles() {
 
 async function viewAllEmployees() {
     const query = `
-    SELECT e.id, e.first_name, e.last_name, r.title, d.department_name, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager_name
+    SELECT e.id, e.first_name, e.last_name, r.title, d.dep_name, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager_name
     FROM employee e
     LEFT JOIN roles r ON e.role_id = r.id
-    LEFT JOIN departments d ON r.department_id = d.id
+    LEFT JOIN department d ON r.department_id = d.id
     LEFT JOIN employee m ON e.manager_id = m.id;
     `;
 
@@ -167,7 +167,7 @@ async function addDepartment() {
             message: "Enter the name of the department you want to add:",
         });
 
-        const query = "INSERT INTO department (department_name) VALUES (?)";
+        const query = "INSERT INTO department (dep_name) VALUES (?)";
         const [result] = await connection.promise().query(query, [answer.name]);
 
         console.log(`You added department ${answer.name} to the employee database`);
@@ -198,11 +198,11 @@ async function addRole() {
                 type: "list",
                 name: "department",
                 message: "Select the department for the new role:",
-                choices: departments.map(department => department.name),
+                choices: department.map(department => department.name),
             },
         ]);
 
-        const department = departments.find(dep => dep.name === answers.department);
+        const department = department.find(dep => dep.name === answers.department);
         const query = "INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)";
         const roleData = [answers.title, answers.salary, department.id];
 
@@ -314,7 +314,7 @@ async function updateEmployeeRole() {
 
 //next update employe managerssss
 
-async function updateEmployeeManager() {
+async function updateEmployeeManagers() {
     try {
         const [employees] = await connection.promise().query(
             "SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employee"
@@ -361,12 +361,12 @@ async function viewEmployeesByManager() {
                 e.first_name, 
                 e.last_name, 
                 r.title, 
-                d.department_name, 
+                d.dep_name, 
                 CONCAT(m.first_name, ' ', m.last_name) AS manager_name
             FROM 
                 employee e
                 INNER JOIN roles r ON e.role_id = r.id
-                INNER JOIN departments d ON r.department_id = d.id
+                INNER JOIN department d ON r.department_id = d.id
                 LEFT JOIN employee m ON e.manager_id = m.id
             ORDER BY 
                 manager_name, 
@@ -390,8 +390,8 @@ async function viewEmployeesByManager() {
             console.log(`\n${managerName}:`);
             const employees = employeesByManager[managerName];
             employees.forEach((employee) => {
-                const { first_name, last_name, title, department_name } = employee;
-                console.log(`  ${first_name} ${last_name} | ${title} | ${department_name}`);
+                const { first_name, last_name, title, dep_name } = employee;
+                console.log(`  ${first_name} ${last_name} | ${title} | ${dep_name}`);
             });
         }
 
@@ -407,15 +407,15 @@ async function viewEmployeesByDepartment() {
     try {
         const query = `
             SELECT 
-                departments.department_name, 
+                department.dep_name, 
                 employee.first_name, 
                 employee.last_name 
             FROM 
                 employee 
                 INNER JOIN roles ON employee.role_id = roles.id 
-                INNER JOIN departments ON roles.department_id = departments.id 
+                INNER JOIN department ON roles.department_id = department.id 
             ORDER BY 
-                departments.department_name ASC
+                department.dep_name ASC
         `;
 
         const [rows] = await connection.promise().query(query);
@@ -532,7 +532,7 @@ async function deleteRole() {
 async function deleteDepartment() {
     try {
         const departments = await connection.query("SELECT id, name FROM department");
-        const departmentChoices = departments.map(department => ({
+        const departmentChoices = department.map(department => ({
             name: department.name,
             value: department.id,
         }));
@@ -560,10 +560,10 @@ async function deleteDepartment() {
 
 // finally, all salaries in a dpt
 
-async function viewDepartmentBudget() {
+async function viewTotalUtilizedBudgetOfDepartment() {
     try {
-        const departments = await connection.query("SELECT id, name FROM department");
-        const departmentChoices = departments.map(department => ({
+        const department = await connection.query("SELECT id, name FROM department");
+        const departmentChoices = department.map(department => ({
             name: department.name,
             value: department.id,
         }));
@@ -593,4 +593,4 @@ async function viewDepartmentBudget() {
 
 process.on("exit", ()=>{
     connection.end();
-})
+});
