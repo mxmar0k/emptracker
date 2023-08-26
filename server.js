@@ -31,7 +31,7 @@ function start(){
             "View all departments",
             "View all roles",
             "View all employees",
-            "Add a  department",
+            "Add a department",
             "Add a role",
             "Add an employee",
             "Update and employee role",
@@ -39,7 +39,7 @@ function start(){
             "View employees by manager",
             "View employees by department",
             "Delete departments, roles, and employees",
-            "View the total utilized budget of a department&mdash;in other words, the combined salaries of all employees in that department.",
+            "View the total utilized budget of a department.",
             "Exit",
 
         ],
@@ -533,7 +533,7 @@ async function deleteRole() {
 async function deleteDepartment() {
     try {
         const departments = await connection.query("SELECT id, name FROM department");
-        const departmentChoices = department.map(department => ({
+        const departmentChoices = departments.map(department => ({
             name: department.name,
             value: department.id,
         }));
