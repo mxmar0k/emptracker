@@ -480,7 +480,7 @@ async function deleteDepartmentsRolesEmployees() {
 
 async function deleteEmployee() {
     try {
-        const employees = await connection.query("SELECT id, first_name, last_name FROM employee");
+        const [employees] = await connection.promise().query("SELECT id, first_name, last_name FROM employee");
         const employeeChoices = employees.map(employee => ({
             name: `${employee.first_name} ${employee.last_name}`,
             value: employee.id,
@@ -499,7 +499,7 @@ async function deleteEmployee() {
             return;
         }
 
-        await connection.query("DELETE FROM employee WHERE id = ?", [answer.employeeId]);
+        await connection.promise().query("DELETE FROM employee WHERE id = ?", [answer.employeeId]);
         console.log(`Employee with ID ${answer.employeeId} has been deleted.`);
         start();
     } catch (error) {
@@ -511,7 +511,7 @@ async function deleteEmployee() {
 
 async function deleteRole() {
     try {
-        const roles = await connection.query("SELECT id, title FROM role");
+        const [roles] = await connection.promise().query("SELECT id, title FROM role");
         const roleChoices = roles.map(role => ({
             name: role.title,
             value: role.id,
@@ -530,7 +530,7 @@ async function deleteRole() {
             return;
         }
 
-        await connection.query("DELETE FROM role WHERE id = ?", [answer.roleId]);
+        await connection.promise().query("DELETE FROM role WHERE id = ?", [answer.roleId]);
         console.log(`Role with ID ${answer.roleId} has been deleted.`);
         start();
     } catch (error) {
@@ -542,7 +542,7 @@ async function deleteRole() {
 
 async function deleteDepartment() {
     try {
-        const departments = await connection.query("SELECT id, name FROM department");
+        const [departments] = await connection.promise().query("SELECT id, dep_name AS name FROM department");
         const departmentChoices = departments.map(department => ({
             name: department.name,
             value: department.id,
@@ -561,15 +561,13 @@ async function deleteDepartment() {
             return;
         }
 
-        await connection.query("DELETE FROM department WHERE id = ?", [answer.departmentId]);
+        await connection.promise().query("DELETE FROM department WHERE id = ?", [answer.departmentId]);
         console.log(`Department with ID ${answer.departmentId} has been deleted.`);
         start();
     } catch (error) {
         console.error("An error occurred:", error);
     }
 }
-
-// finally, all salaries in a dpt
 
 // finally, all salaries in a dpt
 async function viewTotalUtilizedBudgetOfDepartment() {
