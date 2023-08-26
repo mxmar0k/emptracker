@@ -24,3 +24,74 @@ connection.connect((err)=>{
 process.on("exit", ()=>{
     connection.end();
 })
+
+// start the app with inquierer
+
+function start(){
+    inquirer
+    .prompt({
+        type:"list",
+        name: "action",
+        message: "Please choose an option",
+        choices:[
+            "View all departments",
+            "View all roles",
+            "View all employees",
+            "Add a  department",
+            "Add a role",
+            "Add an employee",
+            "Update and employee role",
+            "Update employee managers",
+            "View employees by manager",
+            "View employees by department",
+            "Delete departments, roles, and employees",
+            "View the total utilized budget of a department&mdash;in other words, the combined salaries of all employees in that department.",
+            "Exit",
+
+        ],
+    })
+    .then((answer) => {
+        switch (answer.action) {
+            case "View all departments":
+                viewAllDepartments();
+                break;
+            case "View all roles":
+                viewAllRoles();
+                break;
+            case "View all employees":
+                viewAllEmployees();
+                break;
+            case "Add a department":
+                addDepartment();
+                break;
+            case "Add a role":
+                addRole();
+                break;
+            case "Add an employee":
+                addEmployee();
+                break;
+            case "Update an employee role":
+                updateEmployeeRole();
+                break;
+            case "Update employee managers":
+                updateEmployeeManagers();
+                break;
+            case "View employees by manager":
+                viewEmployeesByManager();
+                break;
+            case "View employees by department":
+                viewEmployeesByDepartment();
+                break;
+            case "Delete departments, roles, and employees":
+                deleteDepartmentsRolesEmployees();
+                break;
+            case "View the total utilized budget of a department":
+                viewTotalUtilizedBudgetOfDepartment();
+                break;
+            case "Exit":
+                connection.end();
+                console.log("Goodbye!");
+                break;
+        }
+    });
+}
