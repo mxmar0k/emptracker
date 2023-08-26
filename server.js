@@ -104,7 +104,7 @@ function start(){
             "Add a  department",*
             "Add a role",*
             "Add an employee",*
-            "Update and employee role",
+            "Update an employee role",
             "Update employee managers",
             "View employees by manager",
             "View employees by department",
@@ -274,3 +274,86 @@ async function addEmployee() {
         console.error("An error occurred:", error);
     }
 }
+
+//next update employee role...
+
+async function updateEmployeeRole() {
+    try {
+        const [employees] = await connection.promise().query(
+            "SELECT employee.id, employee.first_name, employee.last_name, roles.title FROM employee LEFT JOIN roles ON employee.role_id = roles.id"
+        );
+
+        const [roles] = await connection.promise().query("SELECT id, title FROM role");
+
+        const employeeChoices = employees.map(({ id, first_name, last_name }) => ({
+            name: `${first_name} ${last_name}`,
+            value: id,
+        }));
+
+        const roleChoices = roles.map(({ id, title }) => ({ name: title, value: id }));
+
+        const answers = await inquirer.prompt([
+            {
+                type: "list",
+                name: "employeeId",
+                message: "Select the employee to update:",
+                choices: employeeChoices,
+            },
+            {
+                type: "list",
+                name: "roleId",
+                message: "Select the new role:",
+                choices: roleChoices,
+            },
+        ]);
+
+        const sql = "UPDATE employee SET role_id = ? WHERE id = ?";
+        const values = [answers.roleId, answers.employeeId];
+
+        await connection.promise().query(sql, values);
+        console.log("Employee role updated successfully");
+        start();
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+}
+
+//next update employe managerssss
+
+async function updateEmployeeManager() {
+    try {
+        const [employees] = await connection.promise().query(
+            "SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employee"
+        );
+
+        const employeeChoices = employees.map(({ id, name }) => ({
+            name,
+            value: id,
+        }));
+
+        const answers = await inquirer.prompt([
+            {
+                type: "list",
+                name: "employeeId",
+                message: "Select the employee to update:",
+                choices: employeeChoices,
+            },
+            {
+                type: "list",
+                name: "managerId",
+                message: "Select the new manager for the employee:",
+                choices: [...employeeChoices, { name: "None", value: null }],
+            },
+        ]);
+
+        const sql = "UPDATE employee SET manager_id = ? WHERE id = ?";
+        const values = [answers.managerId, answers.employeeId];
+
+        await connection.promise().query(sql, values);
+        console.log("Employee manager updated successfully");
+        start();
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+}
+
