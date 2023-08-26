@@ -593,3 +593,4 @@ async function viewTotalUtilizedBudgetOfDepartment() {
 process.on("exit", ()=>{
     connection.end();
 });
+
