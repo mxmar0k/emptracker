@@ -583,20 +583,37 @@ async function viewTotalUtilizedBudgetOfDepartment() {
             choices: departments.map(department => department.dep_name),
         });
 
-        const departmentId = departments.find(dep => dep.dep_name === answer.departmentId).id; // Correctly find the department ID
-        const result = await connection.promise().query(
-            "SELECT SUM(role.salary) AS total_budget FROM employee JOIN role ON employee.role_id = role.id WHERE role.department_id = ?",
-            [departmentId]
-        );
+        const selectedDepartment = departments.find(dep => dep.dep_name === answer.departmentId);
+
+        // make sure the department was found
+        if (!selectedDepartment) {
+            console.log("Selected department not found.");
+            start();
+            return;
+        }
+
+        // get the total budget using a query
+        const query = `
+            SELECT SUM(role.salary) AS total_budget
+            FROM employee
+            JOIN role ON employee.role_id = role.id
+            WHERE role.department_id = ?
+        `;
+        
+        const [result] = await connection.promise().query(query, [selectedDepartment.id]);
 
         const totalBudget = result[0].total_budget;
-        console.log(`Total budget for the selected department: $${totalBudget}`);
+        
+        // display the total budget
+        console.log(`Total budget for the ${selectedDepartment.dep_name} department: $${totalBudget}`);
+        
         start();
     } catch (error) {
         console.error("An error occurred:", error);
         start();
     }
 }
+
 
 //close connection
 
