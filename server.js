@@ -198,12 +198,12 @@ async function addRole() {
                 type: "list",
                 name: "department",
                 message: "Select the department for the new role:",
-                choices: department.map(department => department.name),
+                choices: departments.map(department => department.name),
             },
         ]);
 
-        const department = department.find(dep => dep.name === answers.department);
-        const query = "INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)";
+        const department = department.find(dep => dep.dep_name === answers.department);
+        const query = "INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)";
         const roleData = [answers.title, answers.salary, department.id];
 
         await connection.promise().query(query, roleData);
@@ -560,24 +560,21 @@ async function deleteDepartment() {
 
 // finally, all salaries in a dpt
 
+// finally, all salaries in a dpt
 async function viewTotalUtilizedBudgetOfDepartment() {
     try {
-        const department = await connection.query("SELECT id, name FROM department");
-        const departmentChoices = department.map(department => ({
-            name: department.name,
-            value: department.id,
-        }));
+        const [departments] = await connection.promise().query("SELECT * FROM department");
 
         const answer = await inquirer.prompt({
             type: "list",
             name: "departmentId",
             message: "Select the department to view the budget:",
-            choices: departmentChoices,
+            choices: departments.map(department => department.dep_name),
         });
 
-        const departmentId = answer.departmentId;
-        const result = await connection.query(
-            "SELECT SUM(role.salary) AS total_budget FROM employee JOIN role ON employee.role_id = role.id WHERE role.department_id = ?",
+        const departmentId = departments.find(dep => dep.dep_name === answer.departmentId).id; // Correctly find the department ID
+        const result = await connection.promise().query(
+            "SELECT SUM(roles.salary) AS total_budget FROM employee JOIN roles ON employee.role_id = roles.id WHERE roles.department_id = ?",
             [departmentId]
         );
 
@@ -586,6 +583,7 @@ async function viewTotalUtilizedBudgetOfDepartment() {
         start();
     } catch (error) {
         console.error("An error occurred:", error);
+        start();
     }
 }
 
