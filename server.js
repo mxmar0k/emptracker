@@ -423,7 +423,7 @@ async function viewEmployeesByDepartment() {
                 employee.last_name 
             FROM 
                 employee 
-                INNER JOIN roles ON employee.role_id = role.id 
+                INNER JOIN role ON employee.role_id = role.id 
                 INNER JOIN department ON role.department_id = department.id 
             ORDER BY 
                 department.dep_name ASC
